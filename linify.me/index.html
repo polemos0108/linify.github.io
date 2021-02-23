@@ -1,0 +1,132 @@
+<!DOCTYPE html><html>
+<!-- Mirrored from linify.me/ by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 16 Feb 2021 09:59:53 GMT -->
+<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
+<head><link rel="stylesheet" href="stylesheets/style.css"><link rel="stylesheet" href="../maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css"><meta property="og:site_name" content="Linify"><link rel="apple-touch-icon" sizes="57x57" href="apple-touch-icon-57x57.png"><link rel="apple-touch-icon" sizes="60x60" href="apple-touch-icon-60x60.png"><link rel="apple-touch-icon" sizes="72x72" href="apple-touch-icon-72x72.png"><link rel="apple-touch-icon" sizes="76x76" href="apple-touch-icon-76x76.png"><link rel="apple-touch-icon" sizes="114x114" href="apple-touch-icon-114x114.png"><link rel="apple-touch-icon" sizes="120x120" href="apple-touch-icon-120x120.png"><link rel="apple-touch-icon" sizes="144x144" href="apple-touch-icon-144x144.png"><link rel="apple-touch-icon" sizes="152x152" href="apple-touch-icon-152x152.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png"><link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32"><link rel="icon" type="image/png" href="android-chrome-192x192.png" sizes="192x192"><link rel="icon" type="image/png" href="favicon-96x96.png" sizes="96x96"><link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16"><link rel="manifest" href="manifest.json"><link rel="mask-icon" href="safari-pinned-tab.svg" color="#5bbad5"><meta name="msapplication-TileColor" content="#da532c"><meta name="msapplication-TileImage" content="mstile-144x144.png"><meta name="theme-color" content="#ffffff"><title>Create Line Art - Linify</title><meta property="og:url" content="index.html"><meta property="og:title" content="Create Line Art"><meta property="og:description" content="Generate line art from an image using only straight lines."><meta name="description" content="Linify generates line art from an image using only straight lines."></head><body><div id="header"><div id="hWrap"><div id="leftHeader"><a href="index.html"><img id="logo" src="images/linify.png" alt="Linify"></a></div><div id="rightHeader"><div id="social"><div id="facebook"><div data-href="https://www.facebook.com/linifyme" data-layout="button" data-action="like" data-show-faces="false" data-share="false" class="fb-like"></div></div><div id="twitter"><a href="https://twitter.com/LINIFYme" data-show-count="false" data-show-screen-name="false" data-dnt="true" class="twitter-follow-button"></a></div></div><a href="about.html" id="about">About</a></div></div></div><div id="wrapper"><div id="content"><div id="drawWrapper"><canvas id="canvas"></canvas><canvas id="lCanvas"></canvas><div id="barBack"><div id="progressBar"><div id="progress"></div></div></div><div id="sizeDiv"><button id="size"><i class="fa fa-expand fa-2x"></i></button><button id="rSize"><i class="fa fa-compress fa-2x"></i></button></div></div><div id="rightCol"><form id="form" autocomplete="off"><div id="topInput" class="settings"><div class="formHeader">Select Image</div><div class="input"><input id="url" type="url" placeholder="Enter image URL"></div><div id="or">--OR--</div><div class="input"><input id="file" type="file" accept="image/*"><label id="fileLabel" for="file" class="button"><i class="fa fa-file-image-o"></i> Import Image</label></div></div><div id="options" class="settings"><div class="formHeader">Options</div><div class="input"><input type="radio" id="color" name="color" checked><label for="color" class="option">Color <i class="fa fa-question-circle quest"></i><div class="tut">Color generates an image consisting of red green and blue lines, while Grayscale consists only of gray lines.</div></label><input type="radio" id="add" name="add"><label for="add" class="option">Additive <i class="fa fa-question-circle quest"></i><div class="tut">Additive adds lines onto a black canvas (RGB), while Subtractive subtracts lines from a white canvas (CMY).</div></label></div><div class="input"><input type="radio" id="gray" name="color"><label for="gray" class="option">Grayscale</label><input type="radio" id="sub" name="add" checked><label for="sub" class="option">Subtractive</label></div><div class="input"><span class="desc">Number of Lines <i class="fa fa-question-circle quest"></i><div class="tut">Number of lines to be drawn. Color actually draws ~3x this number.</div></span><input id="numLines" type="text" value="2500"></div><div class="input"><span class="desc">Line Heaviness <i class="fa fa-question-circle quest"></i><div class="tut">Must be within 1-255. Higher numbers draw heavier lines. No impact on performance.</div></span><input id="lineStep" type="text" value="16"></div><div class="input"><span class="desc">Test Iterations <i class="fa fa-question-circle quest"></i><div class="tut">Number of tests to run before each line is drawn. Higher numbers yield higher quality pictures.</div></span><input id="testLines" type="text" value="200"></div><div class="input"><input type="checkbox" id="hiRes"><label for="hiRes" class="option">High Resolution <i class="fa fa-question-circle quest"></i><div class="tut"> Takes ~3x longer and uses 4x more memory, but yields higher quality. Proceed with caution.</div></label></div></div><div id="draw" class="settings"><div class="input"><button type="submit" class="button"><i class="fa fa-paint-brush"></i> Draw!</button></div></div></form><div id="ds" class="settings"><div class="input"><a id="dLink" class="button"><i class="fa fa-download"></i> Download</a><span id="spacer"></span><button id="sLink" class="button"><i class="fa fa-cloud-upload"></i> Save</button></div></div></div></div><div id="insp"><div id="inspHeader">Inspiration Gallery</div></div></div><script src="javascripts/linesv2.js"></script><script>getInspired();</script><script src="javascripts/FileSaver.min.js"></script> <script>var form = document.getElementById('form');
+form.addEventListener('submit', submitFunc, false);
+getSettings();
+
+var lineStep = 0; // darkness of lines
+var numLines = 0; // number of lines drawn
+var testLines = 0; // number of lines to test for selection
+var linesDrawn = 0;
+var add = null;
+var lines = [];
+var totalProgress = numLines; // number of lines to receive for use in progress
+var cors = false;
+var workers = [];
+var playing = false;
+var shared = false;
+
+var cWidth = 0;
+var cHeight = 0;
+
+var lDisplay = document.getElementById('lCanvas');
+var lContext = lDisplay.getContext('2d');
+lDisplay.width = 1024;
+lDisplay.height = 1024;
+
+var progress = document.getElementById('progress');
+var display = document.getElementById('canvas');
+display.width = 512;
+display.height = 512;
+var dContext = display.getContext('2d');
+
+var size = document.getElementById('size');
+size.addEventListener('click', sizeFunc, false);
+
+var rSize = document.getElementById('rSize');
+rSize.addEventListener('click', rSizeFunc, false);
+
+var image = new Image();
+image.crossOrigin = 'anonymous';
+image.onload = function() {
+	var bar = document.getElementById('barBack');
+	bar.style.visibility = 'visible';
+	
+	if(form.elements[2].checked === true) {
+		var color = true;
+	} else {
+		var color = false;
+	}
+	
+	if(form.elements[9].checked === true) {
+		var hiRes = true;
+	} else {
+		var hiRes = false;
+	}
+	form[10].innerHTML = '<i class="fa fa-paint-brush"></i> Draw!'
+	process(image, color, hiRes);
+	URL.revokeObjectURL(image.src);
+}
+image.addEventListener('error', function(e) {
+	e.preventDefault();
+	if(cors === false) {
+		image.src = '/p/' + url.value;
+	}
+	if(cors === true) {
+		if(workers.length != 0) {
+			for(var i=0; i<workers.length; i++) {
+				workers[i].terminate();
+			}
+			workers = [];
+		}
+		dContext.save();
+		dContext.clearRect(0,0,512,512);
+		dContext.font = "36px sans-serif";
+		dContext.globalCompositeOperation = 'source-over';
+		dContext.fillStyle = 'red';
+		dContext.fillText("Error: Please ensure URL or file is an image", 10, 35, 490)
+		dContext.restore();
+		
+		lContext.save();
+		lContext.clearRect(0,0,1024,1024);
+		lContext.font = "36px sans-serif";
+		lContext.globalCompositeOperation = 'source-over';
+		lContext.fillStyle = 'red';
+		lContext.fillText("Error: Please ensure URL or file is an image", 10, 35, 490)
+		lContext.restore();
+		
+		form[10].innerHTML = '<i class="fa fa-paint-brush"></i> Draw!'
+	}
+	cors = true;
+}, false);
+
+var fileInput = document.getElementById('file');
+var fileLabel = document.getElementById('fileLabel');
+fileInput.addEventListener('change', function(e) {
+	if(this.files.length) {
+		fileLabel.innerHTML = '<i class="fa fa-file-image-o"></i> ' + e.target.value.split('\\').pop();
+	} else {
+		fileLabel.innerHTML = '<i class="fa fa-file-image-o"></i> Import Image';
+	}
+
+}, false);
+
+var ds = document.getElementById('ds');
+
+var dLink = document.getElementById('dLink');
+dLink.href = 'Download.html';
+dLink.addEventListener('click', dLinkFunc, false);
+
+var sLink = document.getElementById('sLink');
+sLink.addEventListener('click', sLinkFunc, false);</script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','../www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-74493057-2', 'auto');
+ga('send', 'pageview');</script><script>window.fbAsyncInit = function() {
+	FB.init({
+		appId: '1129645813736608',
+		xfbml: true,
+		version: 'v2.5'
+	});
+};
+(function(d, s, id){
+	var js, fjs = d.getElementsByTagName(s)[0];
+	if (d.getElementById(id)) {return;}
+	js = d.createElement(s); js.id = id;
+	js.src = "../connect.facebook.net/en_US/sdk.js";
+	fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script><script src="../platform.twitter.com/widgets.js" async></script></body>
+<!-- Mirrored from linify.me/ by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 16 Feb 2021 10:00:03 GMT -->
+</html>
