@@ -631,7 +631,7 @@ function numToPoint(num) {
 	}
 	return [0, width*2 + height*2 - num];
 }
-console log(function numToPoint)
+
 /* Fisher-Yates Shuffle taken from http://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array */
 function shuffle(array) {
 	var currentIndex = array.length, temporaryValue, randomIndex;
